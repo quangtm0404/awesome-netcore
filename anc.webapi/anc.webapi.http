@@ -1,0 +1,6 @@
+@anc.webapi_HostAddress = http://localhost:5201
+
+GET {{anc.webapi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
