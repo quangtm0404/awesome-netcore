@@ -1,9 +1,54 @@
 using System.Net;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+// builder.Services.AddRateLimiter(_ =>
+// {
+//     _.OnRejected = (context, _) =>
+//     {
+//         if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+//         {
+//             context.HttpContext.Response.Headers.RetryAfter =
+//                 ((int) retryAfter.TotalSeconds).ToString(NumberFormatInfo.InvariantInfo);
+//         }
+
+//         context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+//         context.HttpContext.Response.WriteAsync("Too many requests. Please try again later.");
+
+//         return new ValueTask();
+//     };
+//     _.GlobalLimiter = PartitionedRateLimiter.CreateChained(
+//         PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+//         { 
+//             var userAgent = httpContext.Request.Headers["ApiKey"].ToString();
+
+//             return RateLimitPartition.GetFixedWindowLimiter
+//             (userAgent, _ =>
+//                 new FixedWindowRateLimiterOptions
+//                 {
+//                     AutoReplenishment = true,
+//                     PermitLimit = 10,
+//                     Window = TimeSpan.FromSeconds(100)
+//                 });
+//         }),
+//         PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+//         {
+//             var userAgent = httpContext.Connection.RemoteIpAddress?.ToString()
+//                 ?? string.Empty;
+
+//             return RateLimitPartition.GetFixedWindowLimiter
+//             (userAgent, _ =>
+//                 new FixedWindowRateLimiterOptions
+//                 {
+//                     AutoReplenishment = true,
+//                     PermitLimit = 5,    
+//                     Window = TimeSpan.FromSeconds(100)
+//                 });
+//         }));
+// });
 builder.Services.AddRateLimiter(limiterOptions =>
 {
     limiterOptions.AddPolicy("rate-limit-ip", context =>
@@ -42,7 +87,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 var app = builder.Build();
-app.UseRateLimiter(new Microsoft.AspNetCore.RateLimiting.RateLimiterOptions()
+//app.UseRateLimiter();
+app.UseRateLimiter(new RateLimiterOptions()
 {
     OnRejected = (context, cancellationToken) =>
     {
@@ -52,18 +98,54 @@ app.UseRateLimiter(new Microsoft.AspNetCore.RateLimiting.RateLimiterOptions()
     },
     GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
     {
-        var ipAddress = httpContext.Request.Headers["ApiKey"].ToString() ?? string.Empty;
-        return RateLimitPartition.GetFixedWindowLimiter
-            (ipAddress, _ =>
+        var apiKey = httpContext.Request.Headers["ApiKey"].ToString() ?? string.Empty;
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            return RateLimitPartition.GetFixedWindowLimiter
+            (apiKey, _ =>
+                new FixedWindowRateLimiterOptions
+                {
+                    AutoReplenishment = true,
+                    PermitLimit = 1,
+                    Window = TimeSpan.FromSeconds(15)
+                });
+        }
+        else if (apiKey.Contains("Enterprise"))
+        {
+            return RateLimitPartition.GetFixedWindowLimiter
+           (apiKey, _ =>
+               new FixedWindowRateLimiterOptions
+               {
+                   AutoReplenishment = true,
+                   PermitLimit = 20,
+                   Window = TimeSpan.FromSeconds(15)
+               });
+        }
+        else
+        {
+            return RateLimitPartition.GetFixedWindowLimiter
+            (apiKey, _ =>
                 new FixedWindowRateLimiterOptions
                 {
                     AutoReplenishment = true,
                     PermitLimit = 5,
-                    Window = TimeSpan.FromSeconds(10)
+                    Window = TimeSpan.FromSeconds(15)
                 });
+        }
     }),
     RejectionStatusCode = (int)HttpStatusCode.TooManyRequests
 });
+
+// app.UseRateLimiter(new RateLimiterOptions()
+// {
+
+//     OnRejected = (context, cancellationToken) =>
+//     {
+//         context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+//         context.HttpContext.Response.WriteAsync("Please Try Again With ApiKey: " + context.HttpContext.Request.Headers["ApiKey"]);
+//         return new ValueTask();
+//     }
+// };
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
