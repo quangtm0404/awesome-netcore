@@ -1,7 +1,8 @@
+using anc.webapi.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace anc.webapi.Data;
-public class AppDbContext : DbContext 
+public class AppDbContext(DbContextOptions<AppDbContext> opts) : DbContext(opts)
 {
-    public DbSet<>
+    public DbSet<User> User { get; set; }
 }

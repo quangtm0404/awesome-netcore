@@ -51,3 +51,24 @@ namespace anc.webapi
     }
 }
 */
+
+using System.Net;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
+
+namespace anc.webapi;
+public static class ServiceCollectionExtensions
+{
+    public static IServiceCollection AddRateLimiting(this IServiceCollection services)
+    {
+        services.AddRateLimiter(opt =>
+        {
+            opt.OnRejected = (context, v) =>
+            {
+                context.HttpContext.Response.StatusCode = (int)HttpStatusCode.TooManyRequests;
+                return new ValueTask();
+            };
+        });
+        return services;
+    }
+}

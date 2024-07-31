@@ -7,7 +7,7 @@ namespace anc.webapi.Controllers;
 public class IndexController : ControllerBase
 {
     [HttpGet]
-    
+
     public IActionResult Get()
     {
         return Ok();
