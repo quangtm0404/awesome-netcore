@@ -10,16 +10,16 @@ using Microsoft.Extensions.DependencyInjection;
 namespace anc.webapi.Policy;
 public class APIRateLimitPolicy : IRateLimiterPolicy<string>
 {
-
     public APIRateLimitPolicy()
     {
     }
-    public Func<OnRejectedContext, CancellationToken, ValueTask>? OnRejected => async (context, lease) =>
+    public Func<OnRejectedContext, CancellationToken, ValueTask>? OnRejected => async (context, cancellationToken) =>
     {
         context.HttpContext.Response.StatusCode = (int)HttpStatusCode.TooManyRequests;
-        await context.HttpContext.Response.WriteAsync($"Too Many Request API Key: {context.HttpContext.Request.Headers["ApiKey"].ToString() ?? string.Empty}", cancellationToken: lease);
+        await context.HttpContext.Response
+            .WriteAsync($"Too Many Request API Key: {context.HttpContext.Request.Headers["ApiKey"].ToString() ?? string.Empty}! Please Try Again",
+                cancellationToken: cancellationToken);
     };
-
     public RateLimitPartition<string> GetPartition(HttpContext httpContext)
     {
         var memoryCache = httpContext.RequestServices.GetRequiredService<IMemoryCache>();
@@ -44,7 +44,6 @@ public class APIRateLimitPolicy : IRateLimiterPolicy<string>
                 user = userRepo.GetUserByApiKey(apiKey) ?? throw new Exception();
                 memoryCache.Set(apiKey, user);
             }
-
             return RateLimitPartition.GetFixedWindowLimiter(user.ApiKey, key =>
                new FixedWindowRateLimiterOptions()
                {

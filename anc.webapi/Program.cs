@@ -26,61 +26,14 @@ app.UseRateLimiter(new RateLimiterOptions()
     }
 }
 .AddPolicy("apiKey", new APIRateLimitPolicy()));
-// app.UseRateLimiter(new RateLimiterOptions()
-// {
-//     OnRejected = (context, cancellationToken) =>
-//     {
-//         context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-//         context.HttpContext.Response.WriteAsync("Please Try Again With ApiKey: " + context.HttpContext.Request.Headers["ApiKey"]);
-//         return new ValueTask();
-//     },
-//     GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
-//     {
-//         var apiKey = httpContext.Request.Headers["ApiKey"].ToString() ?? string.Empty;
-//         if (string.IsNullOrEmpty(apiKey))
-//         {
-//             return RateLimitPartition.GetFixedWindowLimiter
-//             (apiKey, _ =>
-//                 new FixedWindowRateLimiterOptions
-//                 {
-//                     AutoReplenishment = true,
-//                     PermitLimit = 1,
-//                     Window = TimeSpan.FromSeconds(15)
-//                 });
-//         }
-//         else if (apiKey.Contains("Enterprise"))
-//         {
-//             return RateLimitPartition.GetFixedWindowLimiter
-//            (apiKey, _ =>
-//                new FixedWindowRateLimiterOptions
-//                {
-//                    AutoReplenishment = true,
-//                    PermitLimit = 20,
-//                    Window = TimeSpan.FromSeconds(15)
-//                });
-//         }
-//         else
-//         {
-//             return RateLimitPartition.GetFixedWindowLimiter
-//             (apiKey, _ =>
-//                 new FixedWindowRateLimiterOptions
-//                 {
-//                     AutoReplenishment = true,
-//                     PermitLimit = 5,
-//                     Window = TimeSpan.FromSeconds(15)
-//                 });
-//         }
-//     }),
-//     RejectionStatusCode = (int)HttpStatusCode.TooManyRequests
-// });
+
 
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+
+app.UseSwagger();
+app.UseSwaggerUI();
+app.MapHealthChecks("/healthz");
 
 app.UseHttpsRedirection();
 
