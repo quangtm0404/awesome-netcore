@@ -1,7 +1,8 @@
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
 
-namespace anc.webapi.Middlewares;
+namespace anc.webapi.Policy;
 public class IPRateLimitPolicy : IRateLimiterPolicy<string>
 {
     public Func<OnRejectedContext, CancellationToken, ValueTask>? OnRejected => (context, lease) =>
