@@ -4,6 +4,7 @@ using anc.webapi.Policy;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using StackExchange.Redis;
 
 namespace anc.applications;
 public static class ServiceCollectionExtensions
@@ -11,8 +12,11 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddCoreServices(this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddScoped<IProductService, ProductService>();
-        services.AddScoped<IUserService, UserService>();
+        services.AddDistributedMemoryCache();
+        IConnectionMultiplexer redisConnectionMultiplexer = ConnectionMultiplexer.ConnectAsync(configuration.GetConnectionString("Redis")
+            ?? string.Empty).Result;
+        services.AddSingleton(redisConnectionMultiplexer);
+        services.AddStackExchangeRedisCache(options => options.ConnectionMultiplexerFactory = () => Task.FromResult(redisConnectionMultiplexer));
         services.AddRateLimiter(cfg =>
         {
             cfg.AddPolicy("apiKey", new APIRateLimitPolicy());

@@ -13,8 +13,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddMemoryCache();
         services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(configuration.GetConnectionString("PostgreSQL")));
-        services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IProductRepository, ProductRepository>();
         return services;
     }
 }
