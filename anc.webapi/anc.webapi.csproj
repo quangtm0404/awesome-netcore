@@ -3,14 +3,18 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>97b12943-f99f-48c7-ac29-338b91b47b72</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0"/>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.7"/>
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.7" />
+    
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\anc.domains\anc.domains.csproj"/>
-    <ProjectReference Include="..\anc.repositories\anc.repositories.csproj"/>
-    <ProjectReference Include="..\anc.applications\anc.applications.csproj"/>
+    <ProjectReference Include="..\anc.domains\anc.domains.csproj" />
+    <ProjectReference Include="..\anc.repositories\anc.repositories.csproj" />
+    <ProjectReference Include="..\anc.applications\anc.applications.csproj" />
   </ItemGroup>
 </Project>

@@ -1,6 +1,4 @@
-using anc.applications.Repositories;
 using anc.repositories.Data;
-using anc.repositories.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

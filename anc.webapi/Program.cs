@@ -3,6 +3,7 @@ using anc.repositories;
 using anc.webapi;
 using anc.webapi.Policy;
 using Microsoft.AspNetCore.RateLimiting;
+using Prometheus;
 using Scrutor;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,11 +21,12 @@ builder.Services.Scan(scan => scan
 		 .AsMatchingInterface()
 		 .WithScopedLifetime());
 var app = builder.Build();
+
 app.UseRateLimiter(new RateLimiterOptions()
 .AddPolicy("apiKey", new APIRateLimitPolicy()));
 
 // Configure the HTTP request pipeline.
-
+app.UseMetricServer();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.MapHealthChecks("/healthz");

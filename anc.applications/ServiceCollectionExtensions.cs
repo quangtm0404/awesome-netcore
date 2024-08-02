@@ -1,9 +1,9 @@
-using anc.applications.Services;
-using anc.applications.Services.Interfaces;
+using anc.applications.HealthChecks;
 using anc.webapi.Policy;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OpenTelemetry.Metrics;
 using StackExchange.Redis;
 
 namespace anc.applications;
@@ -29,8 +29,17 @@ public static class ServiceCollectionExtensions
         IConfiguration configuration)
     {
         service.AddHealthChecks()
-            .AddRedis(configuration.GetConnectionString("Redis") ?? string.Empty)
-            .AddNpgSql(configuration.GetConnectionString("PostgreSQL") ?? string.Empty);
+            .AddCheck<AppHealthCheck>("app-check");
         return service;
+    }
+
+    public static IServiceCollection AddMetric(this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services.AddOpenTelemetry()
+            .WithMetrics(opt => opt
+                .AddOtlpExporter()
+                .AddMeter("count_concurrent_user"));
+        return services;
     }
 }
