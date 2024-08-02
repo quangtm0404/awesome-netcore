@@ -42,7 +42,7 @@ public class APIRateLimitPolicy : IRateLimiterPolicy<string>
         else
         {
             memoryCache.TryGetValue(apiKey, out User? user);
-            logger.LogInformation("ApiKey: {0}, Time Process: {1}", apiKey, watch.ElapsedMilliseconds);
+            //logger.LogInformation("ApiKey: {0}, Time Process: {1}", apiKey, watch.ElapsedMilliseconds);
             if (user is null)
             {
                 var userRepo = httpContext.RequestServices.GetRequiredService<IUserRepository>();
@@ -50,7 +50,7 @@ public class APIRateLimitPolicy : IRateLimiterPolicy<string>
                 memoryCache.Set(apiKey, user,
                     absoluteExpiration: DateTimeOffset.Now.AddMinutes(1));
             }
-            logger.LogInformation("ApiKey: {0}, Time Process: {1} _ Done Process", apiKey, watch.ElapsedMilliseconds);
+            //logger.LogInformation("ApiKey: {0}, Time Process: {1} _ Done Process", apiKey, watch.ElapsedMilliseconds);
             return RateLimitPartition.GetConcurrencyLimiter(user.ApiKey, key =>
             {
                 return new ConcurrencyLimiterOptions()
