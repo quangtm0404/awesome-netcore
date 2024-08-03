@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "anc.repositories", "anc.rep
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "anc.applications", "anc.applications\anc.applications.csproj", "{0138EC30-82A7-45A5-A40E-D5CEA31B1DDB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "anc.proxy", "anc.proxy\anc.proxy.csproj", "{EBC88BCA-B816-477A-B11E-C831E76B6801}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{0138EC30-82A7-45A5-A40E-D5CEA31B1DDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0138EC30-82A7-45A5-A40E-D5CEA31B1DDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0138EC30-82A7-45A5-A40E-D5CEA31B1DDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EBC88BCA-B816-477A-B11E-C831E76B6801}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EBC88BCA-B816-477A-B11E-C831E76B6801}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EBC88BCA-B816-477A-B11E-C831E76B6801}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EBC88BCA-B816-477A-B11E-C831E76B6801}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

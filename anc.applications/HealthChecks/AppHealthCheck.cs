@@ -49,6 +49,7 @@ public class AppHealthCheck : IHealthCheck
                     memoryCache.Set(user.ApiKey, user,
                         DateTimeOffset.UtcNow.AddSeconds(30));
                 }
+                //await Task.Delay(10000);
                 return HealthCheckResult.Healthy();
             }
             else

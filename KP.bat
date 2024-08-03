@@ -1,0 +1,1 @@
+start   powershell.exe /C "kill -name dotnet"
