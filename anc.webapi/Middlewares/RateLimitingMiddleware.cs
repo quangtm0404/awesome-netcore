@@ -1,41 +1,43 @@
 
-// using System.Net;
-// using System.Threading.RateLimiting;
+using System.Net;
 
-// namespace anc.webapi.Middlewares;
-// public class RateLimitingMiddleware : IMiddleware
-// {
-//     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
-//     {
-//         try
-//         {
-//             var limiter = CreateAPIKeyLimiter();
-//             await limiter.AcquireAsync();
-//             await next(context);
-//         }
-//         catch (Exception ex)
-//         {
-//             context.Response.StatusCode = (int)HttpStatusCode.TooManyRequests;
-//             await context.Response.WriteAsync("Too Many Request");
-//         }
-//     }
-//     private PartitionedRateLimiter<HttpContext> CreateAPIKeyLimiter()
-//     {
-//         return PartitionedRateLimiter.Create<HttpContext, string>(resource =>
-//         {
-//             var apiKey = resource.Connection.RemoteIpAddress?.ToString() ?? string.Empty;
-//             return RateLimitPartition.GetTokenBucketLimiter(apiKey, key =>
-//            new TokenBucketRateLimiterOptions()
-//            {
-//                AutoReplenishment = true,
-//                QueueLimit = 10,
-//                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-//                TokenLimit = 10,
-//                TokensPerPeriod = 10,
-//                ReplenishmentPeriod = TimeSpan.FromSeconds(10)
-//            });
-//         });
+using Microsoft.Extensions.Caching.Memory;
 
-//     }
 
-// }
+public class RateLimitingMiddleware : IMiddleware
+{
+
+    private readonly ILogger<RateLimitingMiddleware> logger;
+    public RateLimitingMiddleware(ILogger<RateLimitingMiddleware> logger)
+    {
+        this.logger = logger;
+    }
+  
+    public Task HandleException(HttpContext context, string apiKey) => context.Response
+                .WriteAsync($"Too Many Request API Key: {apiKey}! Please Try Again");
+    public async Task InvokeAsync(HttpContext context, RequestDelegate next)
+    {
+        var apiKey = context.Request.Headers["ApiKey"].ToString();
+        var cache = context.RequestServices.GetRequiredService<IMemoryCache>();
+        if (cache is not null)
+        {
+            cache.TryGetValue($"{apiKey}_banned", out string? value);
+            if (value is not null)
+            {
+                logger.LogError("Banned Process");
+                // Banned Limited Request
+                context.Response.StatusCode = (int)HttpStatusCode.TooManyRequests;
+                await HandleException(context, apiKey ?? string.Empty);
+            }  else 
+            {
+                await next(context);
+            }
+        }
+        else
+        {
+            await next(context);
+        }
+
+
+    }
+}

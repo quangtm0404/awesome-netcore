@@ -12,10 +12,15 @@ using Microsoft.Extensions.Logging;
 namespace anc.webapi.Policy;
 public class APIRateLimitPolicy : IRateLimiterPolicy<string>
 {
-
     public Func<OnRejectedContext, CancellationToken, ValueTask>? OnRejected => async (context, cancellationToken) =>
     {
         context.HttpContext.Response.StatusCode = (int)HttpStatusCode.TooManyRequests;
+        var cache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
+        if (cache is not null)
+        {
+            var apiKey = context.HttpContext.Request.Headers["ApiKey"];
+            cache.Set($"{apiKey}_banned", string.Empty, TimeSpan.FromSeconds(30));
+        }
         await context.HttpContext.Response
             .WriteAsync($"Too Many Request API Key: {context.HttpContext.Request.Headers["ApiKey"].ToString() ?? string.Empty}! Please Try Again",
                 cancellationToken: cancellationToken);
@@ -29,9 +34,10 @@ public class APIRateLimitPolicy : IRateLimiterPolicy<string>
         logger.LogInformation("ApiKey: {0}, Time Process: {1} _ Start Process", apiKey, watch.ElapsedMilliseconds);
         if (string.IsNullOrEmpty(apiKey))
         {
-            logger.LogInformation("Not Have API Key");
-            var host = httpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty;
-            return RateLimitPartition.GetFixedWindowLimiter(host, key =>
+
+            var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty;
+            logger.LogInformation("RateLimitPolicy_IP Adress: {0}", ipAddress);
+            return RateLimitPartition.GetFixedWindowLimiter(ipAddress, key =>
                new FixedWindowRateLimiterOptions()
                {
                    AutoReplenishment = false,
@@ -42,7 +48,7 @@ public class APIRateLimitPolicy : IRateLimiterPolicy<string>
         else
         {
             memoryCache.TryGetValue(apiKey, out User? user);
-            //logger.LogInformation("ApiKey: {0}, Time Process: {1}", apiKey, watch.ElapsedMilliseconds);
+            logger.LogInformation("ApiKey: {0}, Time Process: {1}", apiKey, watch.ElapsedMilliseconds);
             if (user is null)
             {
                 var userRepo = httpContext.RequestServices.GetRequiredService<IUserRepository>();
@@ -50,7 +56,7 @@ public class APIRateLimitPolicy : IRateLimiterPolicy<string>
                 memoryCache.Set(apiKey, user,
                     absoluteExpiration: DateTimeOffset.Now.AddMinutes(1));
             }
-            //logger.LogInformation("ApiKey: {0}, Time Process: {1} _ Done Process", apiKey, watch.ElapsedMilliseconds);
+            logger.LogInformation("ApiKey: {0}, Time Process: {1} _ Done Process", apiKey, watch.ElapsedMilliseconds);
             return RateLimitPartition.GetConcurrencyLimiter(user.ApiKey, key =>
             {
                 return new ConcurrencyLimiterOptions()

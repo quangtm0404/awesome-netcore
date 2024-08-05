@@ -12,6 +12,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddCoreServices(this IServiceCollection services,
         IConfiguration configuration)
     {
+        
         services.AddDistributedMemoryCache();
         IConnectionMultiplexer redisConnectionMultiplexer = ConnectionMultiplexer.ConnectAsync(configuration.GetConnectionString("Redis")
             ?? string.Empty).Result;

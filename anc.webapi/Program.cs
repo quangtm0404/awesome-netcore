@@ -7,6 +7,7 @@ using Prometheus;
 using Scrutor;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddSingleton<RateLimitingMiddleware>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -22,6 +23,7 @@ builder.Services.Scan(scan => scan
 		 .WithScopedLifetime());
 var app = builder.Build();
 
+app.UseMiddleware<RateLimitingMiddleware>();
 app.UseRateLimiter(new RateLimiterOptions()
 .AddPolicy("apiKey", new APIRateLimitPolicy()));
 
